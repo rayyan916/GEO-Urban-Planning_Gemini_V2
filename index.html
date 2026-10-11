@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港城市規劃師：新市鎮大挑戰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans HK', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+            background-image: radial-gradient(#dcfce7 1px, transparent 1px);
+            background-size: 20px 20px;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom scrollbar for desktop */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #22c55e; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #16a34a; 
+        }
+
+        .stat-bar {
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stat-change-pop { animation: pop 0.3s ease; }
+        
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col h-[100dvh] overflow-hidden">
+
+    <!-- Main Game Container -->
+    <main class="flex-1 w-full px-2 py-2 md:px-4 md:py-6 mx-auto max-w-6xl flex flex-col overflow-hidden">
+        
+        <!-- Start Screen -->
+        <section id="start-screen" class="bg-white rounded-2xl shadow-xl p-6 md:p-12 w-full text-center fade-in h-full flex flex-col justify-center overflow-y-auto mx-auto max-w-3xl">
+            <div class="m-auto w-full">
+                <div class="mb-4 md:mb-6 text-green-600">
+                    <i class="fas fa-city text-5xl md:text-6xl"></i>
+                </div>
+                <h1 class="text-2xl md:text-5xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
+                    香港城市規劃師<br><span class="text-green-600">新市鎮大挑戰</span>
+                </h1>
+                <div class="text-left space-y-3 md:space-y-4 mb-6 md:mb-8 text-gray-600 text-sm md:text-lg leading-relaxed bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-100">
+                    <p>你是香港城市規劃師，獲政府委派規劃<strong>「星悅新市鎮」</strong>。</p>
+                    <p>這片土地位於新界，鄰近現有市鎮，有山丘、河流、農地、棕地和一條主要公路。政府目標是在15年內建成一個可容納約100,000人的新市鎮，提供房屋、就業、交通、學校、醫療、休憩和社區設施。</p>
+                    <p class="font-bold text-gray-800 border-l-4 border-green-500 pl-3">
+                        你的任務不是「賺最多錢」，而是建設一個宜居、可達、環保、有活力的均衡社區。
+                    </p>
+                    <p class="text-xs md:text-sm">遊戲規則：你將面對25個發展情境。每個決定都會影響人口、交通、環境、社區、經濟及財政六大指標。小心平衡各方需求，稍有不慎，可能會引發災難性結局！</p>
+                </div>
+                <button onclick="startGame()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 md:py-4 md:px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-lg md:text-xl">
+                    開始規劃 <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Game Screen -->
+        <section id="game-screen" class="hidden w-full h-full flex-col lg:flex-row gap-2 md:gap-4 max-w-6xl mx-auto overflow-hidden">
+            
+            <!-- Left/Top Panel: Stats -->
+            <div class="w-full lg:w-[28%] xl:w-1/4 bg-white rounded-xl shadow-md p-2 md:p-4 lg:p-5 border-t-4 border-green-500 flex flex-col flex-shrink-0 z-10">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-1 md:pb-2 mb-2 lg:mb-4">
+                    <h2 class="font-bold text-sm md:text-lg lg:text-xl text-gray-800">城市指標</h2>
+                    <span id="progress-text" class="text-xs bg-green-100 text-green-800 px-2 py-0.5 lg:px-3 lg:py-1 rounded-full font-bold">1 / 25</span>
+                </div>
+                <!-- 網格在手機版顯示 3 列，桌面版 1 列 -->
+                <div class="grid grid-cols-3 lg:grid-cols-1 gap-1.5 md:gap-3" id="stats-container">
+                    <!-- Stats will be generated here -->
+                </div>
+            </div>
+
+            <!-- Right/Bottom Panel: Questions -->
+            <div class="w-full lg:flex-1 bg-white rounded-xl shadow-md p-3 md:p-6 flex flex-col flex-grow min-h-0 relative overflow-hidden">
+                <div id="question-container" class="slide-up flex flex-col h-full overflow-y-auto scrollbar-hide pr-1">
+                    <div class="flex-shrink-0 mb-2 md:mb-4">
+                        <span id="q-number" class="text-[10px] md:text-xs font-bold tracking-wider text-gray-400 uppercase hidden lg:block">發展情境</span>
+                        <h3 id="q-title" class="text-base md:text-xl lg:text-2xl font-bold text-gray-800 mt-1 mb-1 md:mb-2 leading-snug">問題標題</h3>
+                        <p id="q-scenario" class="text-gray-600 text-sm md:text-base lg:text-lg mb-2 md:mb-4 leading-relaxed">情境描述</p>
+                        
+                        <div id="q-tip-container" class="bg-yellow-50 border-l-4 border-yellow-400 p-2 md:p-4 rounded-r-lg hidden mb-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb text-yellow-500 mt-0.5 md:mt-1 mr-2 text-xs md:text-sm"></i>
+                                <p id="q-tip" class="text-yellow-800 font-medium text-xs md:text-sm leading-snug">提示內容</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="choices-container" class="space-y-2 md:space-y-3 mt-auto flex-shrink-0 pb-1">
+                        <!-- Choices generated here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- End Screen -->
+        <section id="end-screen" class="hidden bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl w-full text-center h-[95%] md:h-auto flex flex-col justify-start md:justify-center overflow-y-auto mx-auto relative border border-gray-100">
+            <div class="m-auto w-full flex flex-col items-center">
+                <div id="end-icon" class="mb-4 md:mb-6 w-full max-w-3xl mx-auto flex justify-center">
+                    <!-- Icon/Image injected by JS -->
+                </div>
+                <h1 id="end-title" class="text-2xl md:text-4xl font-black text-gray-900 mb-3 md:mb-4">結局標題</h1>
+                <p id="end-desc" class="text-sm md:text-base text-gray-700 leading-relaxed bg-gray-50/80 p-4 md:p-6 rounded-xl border border-gray-100 mb-6 w-full text-left">
+                    結局描述
+                </p>
+                
+                <h3 class="text-lg md:text-xl font-bold mb-3">最終城市指標</h3>
+                <div id="final-stats" class="grid grid-cols-3 gap-2 md:gap-4 mb-6 text-left w-full">
+                    <!-- Final stats injected by JS -->
+                </div>
+                
+                <div class="text-xl md:text-2xl font-black text-gray-800 mb-6 p-3 md:p-4 bg-blue-50 rounded-lg inline-block">
+                    總分: <span id="final-total-score" class="text-blue-600">0</span> / 600
+                </div>
+
+                <div>
+                    <button onclick="location.reload()" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-redo mr-2"></i> 重新挑戰
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Game State
+        let currentQuestionIndex = 0;
+        let flags = new Set(); // To track critical decisions
+        
+        // Initial Scores
+        const scores = {
+            pop: 20,
+            trans: 20,
+            env: 70,
+            comm: 30,
+            econ: 20,
+            fin: 60
+        };
+
+        const statConfig = {
+            pop: { name: "人口與住屋", icon: "fa-users", color: "bg-blue-500", text: "text-blue-600" },
+            trans: { name: "交通與可達性", icon: "fa-train", color: "bg-yellow-500", text: "text-yellow-600" },
+            env: { name: "環境與健康", icon: "fa-leaf", color: "bg-green-500", text: "text-green-600" },
+            comm: { name: "社區與民生", icon: "fa-hospital", color: "bg-pink-500", text: "text-pink-600" },
+            econ: { name: "經濟與就業", icon: "fa-briefcase", color: "bg-purple-500", text: "text-purple-600" },
+            fin: { name: "財政資源", icon: "fa-coins", color: "bg-orange-500", text: "text-orange-600" }
+        };
+
+        const gameData = [
+            {
+                title: "第一批住宅應建在哪裏？",
+                scenario: "新市鎮需要盡快提供房屋，但土地有限。",
+                tip: "規劃提示： 新市鎮宜在鐵路沿線發展住宅，方便居民使用集體運輸。",
+                choices: [
+                    { text: "A. 在鐵路站附近興建高密度住宅。", effects: { pop: 15, trans: 15, env: -5, econ: 5, fin: -10 } },
+                    { text: "B. 在遠離鐵路站的地方興建低密度住宅。", effects: { pop: 10, env: 5, trans: -10, fin: -5 } },
+                    { text: "C. 先興建臨時房屋，日後再規劃。", effects: { pop: 5, fin: 10, comm: -10, econ: -5 } }
+                ]
+            },
+            {
+                title: "鐵路站應設在哪裏？",
+                scenario: "鐵路是新市鎮的交通骨幹。",
+                choices: [
+                    { text: "A. 設於住宅、商業及社區設施的中心。", effects: { trans: 20, comm: 10, fin: -15 } },
+                    { text: "B. 設於新市鎮邊緣，以減少市中心的噪音。", effects: { trans: 5, env: 5, comm: -10 } },
+                    { text: "C. 暫不建鐵路站，先依靠巴士。", effects: { fin: 15, trans: -15, pop: -5 } }
+                ]
+            },
+            {
+                title: "主要公路應如何走線？",
+                scenario: "新市鎮需要連接市區，但公路會帶來噪音和空氣污染。",
+                tip: "規劃提示： 主要交通幹道宜設於新市鎮外圍，以減少對住宅環境的影響。",
+                choices: [
+                    { text: "A. 沿新市鎮外圍興建主幹道。", effects: { trans: 15, env: 10, fin: -10 } },
+                    { text: "B. 穿過住宅區中心，方便居民駕車。", effects: { trans: 10, env: -20, comm: -10 } },
+                    { text: "C. 不建主幹道，只靠鐵路。", effects: { env: 15, trans: -10, econ: -10 } }
+                ]
+            },
+            {
+                title: "工業區應放在哪裏？",
+                scenario: "新市鎮需要就業機會，但工業會帶來噪音和污染。",
+                tip: "規劃提示： 多層工業樓宇與住宅或學校應保持至少100米距離；工業區與醫院應相距500米。",
+                choices: [
+                    { text: "A. 設於新市鎮邊緣，靠近公路及貨運通道。", effects: { econ: 15, trans: 10, env: -5 } },
+                    { text: "B. 設於住宅區旁，方便居民步行上班。", effects: { econ: 10, comm: 5, env: -25 }, flag: "industrial_near_residential" },
+                    { text: "C. 不設工業區，只發展商業。", effects: { env: 10, econ: -15, fin: -5 } }
+                ]
+            },
+            {
+                title: "工業區與住宅區之間應設甚麼？",
+                scenario: "工業區和住宅區相距不足100米。",
+                choices: [
+                    { text: "A. 設綠化帶、停車場或倉庫作緩衝。", effects: { env: 15, comm: 5, fin: -5 } },
+                    { text: "B. 直接相鄰，節省土地。", effects: { econ: 10, env: -25, comm: -10 }, flag: "industrial_near_residential" },
+                    { text: "C. 建一道高牆隔開。", effects: { env: 5, comm: -15, fin: -5 } }
+                ]
+            },
+            {
+                title: "新市鎮需要多少休憩用地？",
+                scenario: "目標人口為100,000人。",
+                tip: "規劃提示： 香港休憩用地標準為每10萬人不少於35公頃，即每人約3.5平方米。",
+                choices: [
+                    { text: "A. 提供至少35公頃休憩用地。", effects: { comm: 15, env: 15, fin: -15 } },
+                    { text: "B. 提供10公頃，留更多土地建樓。", effects: { pop: 10, comm: -15, env: -10 } },
+                    { text: "C. 不設大型公園，只建小型兒童遊樂場。", effects: { fin: 10, comm: -20, env: -10 } }
+                ]
+            },
+            {
+                title: "商業中心應設在哪裏？",
+                scenario: "居民需要購物、餐飲和日常服務。",
+                choices: [
+                    { text: "A. 設於鐵路站旁，形成社區活動中心。", effects: { trans: 10, comm: 10, econ: 10, fin: -10 } },
+                    { text: "B. 分散在各住宅區，設鄰舍商店。", effects: { comm: 15, trans: 5, econ: 5 } },
+                    { text: "C. 集中在偏遠的大型商場。", effects: { econ: 10, trans: -15, comm: -5 } }
+                ]
+            },
+            {
+                title: "學校應如何分布？",
+                scenario: "新市鎮將有不少年輕家庭。",
+                tip: "規劃提示： 小學按每27名6至11歲兒童一間課室規劃；中學按每40名12至17歲青少年一間課室規劃。",
+                choices: [
+                    { text: "A. 在住宅區內分散設置小學及中學。", effects: { comm: 20, trans: 5, fin: -15 } },
+                    { text: "B. 全部學校集中在一個教育城。", effects: { fin: 5, trans: -10, comm: -5 } },
+                    { text: "C. 暫不建學校，學生跨區上學。", effects: { fin: 15, comm: -20, trans: -10 } }
+                ]
+            },
+            {
+                title: "醫療設施應如何提供？",
+                scenario: "新市鎮人口將逐步增加。",
+                tip: "規劃提示： 每100,000人應設一間普通科診所；每1,000人應有5.5張醫院病床。",
+                choices: [
+                    { text: "A. 設普通科診所，並按人口預留醫院用地。", effects: { comm: 15, env: 5, fin: -15 } },
+                    { text: "B. 只設藥房和私家診所。", effects: { fin: 10, comm: -15 } },
+                    { text: "C. 在工業區旁建醫院，節省土地。", effects: { comm: -20, env: -20, fin: 5 }, flag: "hospital_near_industrial" }
+                ]
+            },
+            {
+                title: "圖書館與社區會堂應如何安排？",
+                scenario: "居民希望有閱讀、活動和聚會空間。",
+                tip: "規劃提示： 每200,000人應設一間分區圖書館；社區會堂沒有固定人口標準，按社區需要規劃。",
+                choices: [
+                    { text: "A. 在社區中心設圖書館及社區會堂。", effects: { comm: 15, trans: 5, fin: -10 } },
+                    { text: "B. 只建圖書館，不建社區會堂。", effects: { comm: 5, fin: 5 } },
+                    { text: "C. 兩者都不建，由居民自行解決。", effects: { fin: 15, comm: -20 } }
+                ]
+            },
+            {
+                title: "長者人口增加，應如何回應？",
+                scenario: "15年後，新市鎮長者比例上升。",
+                choices: [
+                    { text: "A. 增設長者中心、日間護理中心及無障礙設施。", effects: { comm: 15, env: 5, fin: -10 } },
+                    { text: "B. 只增加醫院病床。", effects: { comm: 5, fin: -10 } },
+                    { text: "C. 不作特別規劃。", effects: { comm: -20, pop: -5 } }
+                ]
+            },
+            {
+                title: "新市鎮需要更多就業機會，你會怎樣做？",
+                scenario: "若居民每天都要到市區工作，交通壓力會很大。",
+                choices: [
+                    { text: "A. 發展商業、創科及物流，提供區內職位。", effects: { econ: 20, trans: 5, fin: -10 } },
+                    { text: "B. 只依靠住宅發展收入。", effects: { fin: 10, econ: -15, trans: -10 } },
+                    { text: "C. 大量興建工廠，即使接近住宅。", effects: { econ: 15, env: -25, comm: -10 }, flag: "industrial_near_residential" }
+                ]
+            },
+            
+            {
+                title: "河流和濕地應如何處理？",
+                scenario: "土地上有河流和濕地，具有生態價值。",
+                choices: [
+                    { text: "A. 保留作生態公園及防洪緩衝區。", effects: { env: 20, comm: 10, fin: -10 } },
+                    { text: "B. 填平作住宅用地。", effects: { pop: 15, env: -25, fin: 5 }, flag: "destroy_wetland" },
+                    { text: "C. 改為人工水景，但不作保育。", effects: { env: 5, comm: 5, fin: -5 } }
+                ]
+            },
+            {
+                title: "山坡地帶應如何使用？",
+                scenario: "部分土地位於山坡，有山泥傾瀉風險。",
+                choices: [
+                    { text: "A. 保留作綠化及休憩用地。", effects: { env: 15, comm: 10, fin: -5 } },
+                    { text: "B. 削坡後興建高密度住宅。", effects: { pop: 15, env: -20, comm: -10, fin: -10 }, flag: "destroy_slope" },
+                    { text: "C. 設為工業區。", effects: { econ: 10, env: -20, fin: -5 } }
+                ]
+            },
+            {
+                title: "住宅與主幹道距離太近，怎麼辦？",
+                scenario: "主幹道距離住宅只有約50米，噪音超出標準。",
+                tip: "規劃提示： 主幹道與住宅的建議距離約300米；若設有效屏障，可減至約50米。",
+                choices: [
+                    { text: "A. 設隔聲屏障、綠化帶及隔聲窗。", effects: { env: 15, comm: 5, fin: -10 } },
+                    { text: "B. 將住宅改建為商業或倉庫。", effects: { env: 10, econ: 5, comm: -5 } },
+                    { text: "C. 照常興建住宅。", effects: { pop: 10, env: -25, comm: -15 } }
+                ]
+            },
+            {
+                title: "新市鎮出現交通擠塞，應如何改善？",
+                scenario: "上下班時間，主要道路嚴重擠塞。",
+                choices: [
+                    { text: "A. 擴建鐵路、巴士及單車徑，鼓勵公共交通。", effects: { trans: 20, env: 10, fin: -15 } },
+                    { text: "B. 不斷擴闊道路，鼓勵更多人駕車。", effects: { trans: 10, env: -15, fin: -15 } },
+                    { text: "C. 限制新住宅入伙。", effects: { trans: 10, pop: -15, econ: -10 } }
+                ]
+            },
+            {
+                title: "新市鎮需要應對極端天氣，你會優先做甚麼？",
+                scenario: "氣候變化令暴雨和酷熱天氣更常見。",
+                tip: "規劃提示： 新發展區設計應具抗禦力，應對氣候變化和極端天氣。",
+                choices: [
+                    { text: "A. 建設雨水排放系統、蓄洪池和通風廊。", effects: { env: 20, comm: 5, fin: -15 } },
+                    { text: "B. 只依靠現有排水渠。", effects: { fin: 5, env: -20 }, flag: "ignore_flood" },
+                    { text: "C. 在河邊加建住宅，增加土地供應。", effects: { pop: 10, env: -25, comm: -10 }, flag: "destroy_wetland" }
+                ]
+            },
+            {
+                title: "新市鎮人口增加，社區設施不足，怎麼辦？",
+                scenario: "居民投訴診所、學校和康樂設施不足。",
+                choices: [
+                    { text: "A. 按人口及時增建社區設施。", effects: { comm: 20, fin: -15 } },
+                    { text: "B. 要求居民跨區使用現有設施。", effects: { fin: 10, comm: -20, trans: -10 } },
+                    { text: "C. 將社區設施用地改作住宅。", effects: { pop: 10, comm: -25, fin: 5 } }
+                ]
+            },
+            {
+                title: "有發展商希望興建大型私人住宅，你會如何處理？",
+                scenario: "發展商願意提供資金，但要求增加住宅密度。",
+                choices: [
+                    { text: "A. 在鐵路站附近適度增加密度，同時要求提供社區及休憩設施。", effects: { pop: 15, econ: 10, comm: 5, fin: 10 } },
+                    { text: "B. 全面接受最高密度，以增加房屋供應。", effects: { pop: 20, env: -15, trans: -15, comm: -10 } },
+                    { text: "C. 拒絕所有私人發展。", effects: { env: 10, pop: -15, fin: -15 } }
+                ]
+            },
+            {
+                title: "新市鎮接近完成，最後一塊核心土地應如何使用？",
+                scenario: "這塊地鄰近鐵路站，是全區最方便的地點。",
+                choices: [
+                    { text: "A. 建社區中心、圖書館、診所、商場及公共交通交匯處。", effects: { comm: 20, trans: 15, econ: 10, fin: -15 } },
+                    { text: "B. 建最高密度住宅。", effects: { pop: 20, trans: -10, comm: -10 } },
+                    { text: "C. 建大型停車場。", effects: { trans: 5, comm: -15, env: -10 } }
+                ]
+            },
+            {
+                title: "有居民要求設街市",
+                scenario: "社區內缺乏新鮮食材供應點。",
+                choices: [
+                    { text: "A. 在住宅區附近設有蓋街市。", effects: { comm: 10, econ: 5, fin: -5 } },
+                    { text: "B. 只依靠超級市場。", effects: { comm: -5, econ: 5 } },
+                    { text: "C. 設於工業區旁。", effects: { econ: 5, comm: -10, env: -10 } }
+                ]
+            },
+            {
+                title: "有團體要求保護歷史建築",
+                scenario: "新市鎮範圍內有一座具歷史價值的舊建築。",
+                choices: [
+                    { text: "A. 保留並活化為社區博物館。", effects: { comm: 15, env: 5, fin: -10 } },
+                    { text: "B. 拆卸後建住宅。", effects: { pop: 10, comm: -20, fin: 10 } },
+                    { text: "C. 圍封不作使用。", effects: { env: 5, comm: -10 } }
+                ]
+            },
+            {
+                title: "有企業希望設立數據中心",
+                scenario: "數據中心能帶動經濟，但耗電量大。",
+                choices: [
+                    { text: "A. 設於工業區，並要求使用節能設備。", effects: { econ: 15, env: -5, fin: 10 } },
+                    { text: "B. 設於住宅區。", effects: { econ: 10, env: -20 } },
+                    { text: "C. 拒絕設立。", effects: { env: 5, econ: -10 } }
+                ]
+            },
+            {
+                title: "新市鎮出現廢物處理問題",
+                scenario: "居民產生大量垃圾需要處理。",
+                choices: [
+                    { text: "A. 設回收站及垃圾收集站，並遠離住宅。", effects: { env: 15, comm: 5, fin: -10 } },
+                    { text: "B. 設於住宅區旁。", effects: { fin: 5, env: -25, comm: -15 } },
+                    { text: "C. 將垃圾運往其他地區。", effects: { env: -5, fin: -5, comm: -5 } }
+                ]
+            },
+            {
+                title: "居民要求更多單車徑和行人路",
+                scenario: "市民希望有更健康和環保的出行方式。",
+                choices: [
+                    { text: "A. 建立連接住宅、鐵路站、學校和公園的行人及單車網絡。", effects: { trans: 15, env: 10, comm: 10, fin: -10 } },
+                    { text: "B. 只建一條主要單車徑。", effects: { trans: 5, comm: 5 } },
+                    { text: "C. 不建，優先擴闊車路。", effects: { trans: -5, env: -10, comm: -10 } }
+                ]
+            }
+        ];
+
+        function initUI() {
+            const container = document.getElementById('stats-container');
+            container.innerHTML = '';
+            for (const [key, data] of Object.entries(statConfig)) {
+                // 將「與」字去掉以縮短手機版顯示名稱，例如「環境與健康」變成「環境健康」
+                const shortName = data.name.replace("與", "");
+                container.innerHTML += `
+                    <div class="bg-gray-50 p-1.5 md:p-2 lg:p-3 rounded-lg border border-gray-100 relative flex flex-col justify-center">
+                        <div class="flex justify-between items-center mb-1 lg:mb-1.5">
+                            <span class="text-[10px] md:text-xs lg:text-sm font-bold text-gray-700 flex items-center leading-none">
+                                <i class="fas ${data.icon} w-3 lg:w-5 text-center mr-0.5 lg:mr-1"></i> <span class="tracking-tighter lg:tracking-normal truncate max-w-[45px] sm:max-w-none">${shortName}</span>
+                            </span>
+                            <span class="text-[10px] md:text-sm font-black ${data.text} leading-none" id="score-text-${key}">${scores[key]}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1 md:h-1.5 lg:h-2">
+                            <div class="${data.color} h-1 md:h-1.5 lg:h-2 rounded-full stat-bar" id="score-bar-${key}" style="width: ${scores[key]}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('fade-in');
+            initUI();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= gameData.length) {
+                calculateEnding();
+                return;
+            }
+
+            const q = gameData[currentQuestionIndex];
+            const qContainer = document.getElementById('question-container');
+            
+            // Reset animation
+            qContainer.classList.remove('slide-up');
+            void qContainer.offsetWidth; // trigger reflow
+            qContainer.classList.add('slide-up');
+
+            document.getElementById('progress-text').innerText = `${currentQuestionIndex + 1} / ${gameData.length}`;
+            document.getElementById('q-title').innerText = q.title;
+            document.getElementById('q-scenario').innerText = q.scenario;
+            
+            const tipContainer = document.getElementById('q-tip-container');
+            if (q.tip) {
+                document.getElementById('q-tip').innerText = q.tip;
+                tipContainer.classList.remove('hidden');
+            } else {
+                tipContainer.classList.add('hidden');
+            }
+
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+            
+            q.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-2.5 md:p-4 lg:p-5 rounded-lg lg:rounded-xl border border-gray-200 hover:border-green-500 hover:bg-green-50 active:bg-green-100 transition-all duration-200 group relative flex-shrink-0";
+                btn.innerHTML = `
+                    <div class="relative z-10 flex items-start">
+                        <span class="bg-gray-100 text-gray-600 group-hover:bg-green-500 group-hover:text-white rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center font-bold mr-2 md:mr-3 flex-shrink-0 transition-colors text-[10px] md:text-sm mt-0.5">
+                            ${String.fromCharCode(65 + index)}
+                        </span>
+                        <span class="text-gray-800 font-medium leading-snug lg:leading-relaxed group-hover:text-green-900 text-xs md:text-sm lg:text-base">${choice.text.substring(3)}</span>
+                    </div>
+                `;
+                btn.onclick = () => makeChoice(choice);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function makeChoice(choice) {
+            // Apply effects
+            for (const [key, value] of Object.entries(choice.effects)) {
+                const oldVal = scores[key];
+                scores[key] = Math.max(0, Math.min(100, scores[key] + value)); // Clamp between 0 and 100
+                
+                // Update UI visually
+                const textEl = document.getElementById(`score-text-${key}`);
+                const barEl = document.getElementById(`score-bar-${key}`);
+                
+                textEl.innerText = scores[key];
+                barEl.style.width = `${scores[key]}%`;
+
+                // Add pop animation for visual feedback based on change direction
+                textEl.classList.remove('stat-change-pop', 'text-green-500', 'text-red-500');
+                void textEl.offsetWidth; // reflow
+                textEl.classList.add('stat-change-pop');
+                
+                if (scores[key] > oldVal) {
+                    barEl.classList.add('brightness-125');
+                    setTimeout(() => barEl.classList.remove('brightness-125'), 300);
+                }
+            }
+
+            // Record flags for critical errors
+            if (choice.flag) {
+                flags.add(choice.flag);
+            }
+
+            currentQuestionIndex++;
+            setTimeout(loadQuestion, 400); // slight delay for aesthetics
+        }
+
+        function calculateEnding() {
+            document.getElementById('game-screen').classList.add('hidden');
+            const endScreen = document.getElementById('end-screen');
+            endScreen.classList.remove('hidden');
+            endScreen.classList.add('fade-in');
+
+            const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+            document.getElementById('final-total-score').innerText = totalScore;
+
+            // Generate final stats summary
+            const finalStatsContainer = document.getElementById('final-stats');
+            finalStatsContainer.innerHTML = '';
+            for (const [key, data] of Object.entries(statConfig)) {
+                let statusColor = scores[key] < 30 ? 'text-red-600 font-bold' : (scores[key] >= 50 ? 'text-green-600' : 'text-yellow-600');
+                finalStatsContainer.innerHTML += `
+                    <div class="bg-white p-2 md:p-3 rounded-lg border shadow-sm ${scores[key] < 30 ? 'border-red-300 bg-red-50' : 'border-gray-100'}">
+                        <div class="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1"><i class="fas ${data.icon}"></i> ${data.name}</div>
+                        <div class="text-lg md:text-xl font-black ${statusColor}">${scores[key]}</div>
+                    </div>
+                `;
+            }
+
+            // Determine Ending Logic based on rules
+            let title = "";
+            let desc = "";
+            let imageUrl = "";
+
+            if (scores.fin < 30) {
+                title = "財政崩潰";
+                imageUrl = "https://i.postimg.cc/3RhBWptN/Urban-Ending-05-Finance-Collapse-cai-zheng-beng-kui-5.png";
+                desc = "新市鎮規劃藍圖美好，但工程開支遠超預算。鐵路、醫院、學校和公園未能如期完成，部分土地長期空置，居民對政府失去信心。城市規劃必須在理想、需要和資源之間取得平衡。";
+            } else if (scores.trans < 30) {
+                title = "交通噩夢新市鎮";
+                imageUrl = "https://i.postimg.cc/htHMWNxC/Urban-Ending-03-Traffic-Jam-jiao-tong-e-meng-xin-shi-zhen-3.png";
+                desc = "雖然新市鎮提供了大量住宅，但居民每天需要長時間跨區上班和上學。巴士和道路嚴重擠塞，空氣污染上升，居民滿意度下降。這反映新市鎮若缺乏「基建先行」和就業配套，容易變成「睡城」。";
+            } else if (scores.env < 30 || flags.has("industrial_near_residential") || flags.has("hospital_near_industrial")) {
+                title = "污染與健康危機";
+                imageUrl = "https://i.postimg.cc/3xP95zpF/Urban-Ending-04-Industry-gong-ye-qu-jin-lin-zhu-zhai-4.png";
+                desc = "工業廢氣、交通噪音和塵埃影響住宅、學校及醫院。居民經常投訴空氣質素差，健康問題增加，樓價和社區活力下降。這顯示土地用途之間的緩衝區非常重要。";
+            } else if (scores.comm < 30) {
+                title = "配套不足的「孤島社區」";
+                imageUrl = "https://i.postimg.cc/W3Vntr5t/Urban-Ending-06-Lacking-Facilities-pei-tao-bu-zu-de-gu-dao-she-qu-6.png";
+                desc = "新市鎮雖有大量住宅，但缺乏學校、診所、社區會堂、公園和長者服務。居民需跨區上學、就醫和休閒，社區歸屬感低，長者和家庭生活壓力大。均衡社區需要適時提供多元化社區設施。";
+            } else if (scores.env < 40 && (flags.has("destroy_wetland") || flags.has("destroy_slope") || flags.has("ignore_flood"))) {
+                title = "生態破壞與氣候風險";
+                imageUrl = "https://i.postimg.cc/PxH4NZSv/Urban-Ending-07-Bad-Environment-xiang-gang-yu-hou-hong-zai-yu-shan-ni-qing-xie-7.png";
+                desc = "暴雨後新市鎮出現水浸，山坡發生山泥傾瀉，河流生態受破壞。居民開始質疑發展模式是否可持續。這結局提醒玩家：新市鎮發展應保留自然緩衝、綠化帶和防洪空間。";
+            } else if (totalScore >= 360 && Object.values(scores).every(val => val >= 50)) {
+                title = "宜居典範新市鎮";
+                imageUrl = "https://i.postimg.cc/fR65n1XP/Urban-Ending-01-Model-Planning-yi-ju-dian-fan-xin-shi-zhen-1.png";
+                desc = "星悅新市鎮成功提供足夠房屋、鐵路、學校、診所、公園和就業機會。居民可在區內生活、工作和休閒，交通暢達，綠化空間充足。新市鎮被譽為香港未來新市鎮的典範。";
+            } else if (totalScore >= 300 && Object.values(scores).every(val => val >= 30)) {
+                title = "實用但仍有改善空間";
+                imageUrl = "https://i.postimg.cc/dVznPgd4/Urban-Ending-02-Well-Planned-shi-yong-dan-reng-dai-gai-shan-de-xiang-gang-xin-shi-zhen-2.png";
+                desc = "新市鎮大致能運作，居民有屋住、有交通、有基本設施，但部分地區可能較擠迫、通勤時間較長，或休憩空間不足。政府需要在未来十年持續改善社區設施和公共交通。";
+            } else {
+                // Fallback catch-all if scores are erratic but don't hit bottom thresholds
+                title = "失衡的發展區";
+                imageUrl = "https://i.postimg.cc/dVznPgd4/Urban-Ending-02-Well-Planned-shi-yong-dan-reng-dai-gai-shan-de-xiang-gang-xin-shi-zhen-2.png";
+                desc = "新市鎮勉強落成，但各項發展極不平衡。雖然某些範疇表現突出，但由於忽略了其他基礎需要，居民生活質素受到一定影響。規劃師需要更全面地考量各項城市指標。";
+            }
+
+            // 修改圖片的樣式：移除固定高度及 object-cover，改為 h-auto 與 object-contain，讓插畫能100%原比例完整顯示
+            document.getElementById('end-icon').innerHTML = `<img src="${imageUrl}" alt="${title}" class="w-full max-w-2xl h-auto max-h-[40vh] md:max-h-[50vh] object-contain rounded-xl shadow-lg border-2 md:border-4 border-white mb-2 mx-auto bg-gray-50">`;
+            document.getElementById('end-title').innerText = title;
+            document.getElementById('end-desc').innerText = desc;
+        }
+    </script>
+</body>
+</html>
